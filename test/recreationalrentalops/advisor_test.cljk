@@ -1,7 +1,7 @@
 (ns recreationalrentalops.advisor-test
   "Unit tests of `recreationalrentalops.advisor` proposal generation."
   (:require [kotoba.lang.text :as str]
-            [clojure.test :refer [deftest is testing]]
+            [kotoba.test :refer [deftest is testing]]
             [recreationalrentalops.advisor :as adv]
             [recreationalrentalops.governor :as gov]
             [recreationalrentalops.store :as store]))
