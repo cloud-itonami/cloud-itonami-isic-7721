@@ -1,0 +1,44 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:dev:physics` runs it.
+;;
+;; README "Robotics premise": robots do equipment-condition inspection at
+;; checkout/return and verify safety-critical components (ski-binding
+;; release checks and the like) for a recreational and sports goods rental
+;; shop (ISIC 7721). Their physical work: lifting returned skis onto the
+;; inspection bench, carrying returned gear up the ramp to the workshop,
+;; and proof-testing a worn safety-critical steel part (a bicycle brake
+;; inner cable) before the item goes back on the rental rack.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isic-7721"
+ :cases
+ [{:id :skis-onto-inspection-bench
+   :kind :manipulator
+   :procedure "arm lifts a returned ski pair with bindings from the return rack onto the binding-inspection bench"
+   :params {:l1-m 0.60 :l2-m 0.50 :m1-kg 6.0 :m2-kg 4.0
+            :from [0.70 -0.10] :to [0.35 0.60] :duration-s 2.5 :steps 500}
+   :sweep {:param :payload-kg :values [2.0 3.5 5.0 6.5 8.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 120.0 :basis "estimate: continuous shoulder torque of a mid-size collaborative arm (~10-12 kg payload class)"}
+   :boundary {:lo 0.5 :hi 30.0}}
+  {:id :gear-cart-up-to-workshop
+   :kind :transport
+   :procedure "cart robot carries a load of returned gear from the counter up the 4 degree ramp to the workshop"
+   :params {:mass-kg 60.0 :distance-m 40.0 :v-max-mps 1.0 :a-max-mps2 0.5
+            :brake-decel-mps2 0.8 :drive-force-n 140.0 :crr 0.015 :slope-deg 4.0
+            :cog-height-m 0.50 :support-half-length-m 0.30 :max-time-s 1800.0}
+   :sweep {:param :payload-kg :values [10.0 30.0 50.0 80.0 110.0]}
+   :quantity :cycle-time-s
+   :limit {:max 90.0 :basis "estimate: one ramp leg inside the shop's 3-minute return-processing window"}
+   :boundary {:lo 5.0 :hi 140.0}}
+  {:id :brake-cable-proof-test
+   :kind :material
+   :procedure "robot proof-loads a returned bicycle's steel brake inner cable in tension; wear and corrosion reduce its metallic area"
+   :params {:length-m 0.10 :youngs-modulus-pa 190.0e9 :yield-stress-pa 1400.0e6 :hardening-pa 2.0e9
+            :density-kg-m3 7850.0 :max-force-n 3000.0}
+   :sweep {:param :area-m2 :values [1.4e-6 1.2e-6 1.0e-6 0.8e-6 0.6e-6]}
+   :quantity :yield-force-n
+   :limit {:min 1000.0 :basis "estimate: peak inner-cable tension under a hard two-finger lever pull (~200 N at the lever times ~4-5 mechanical advantage), with margin"}
+   :boundary {:lo 0.3e-6 :hi 1.6e-6}}]}
